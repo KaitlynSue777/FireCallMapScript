@@ -1,0 +1,62 @@
+import re
+import pandas as pd
+import csv
+
+def Clean_Addr(Raw):
+    address_types = ["St", "Ave", "Rd", "Blvd", "Ln", "Ct", "Pkwy", "Pl", "PT", "Cir", "Aly", "CT", "Xing", "Trl", "Way", "Hwy 48", "Hwy 76"]
+    # Replace Hwy
+    Clean_Address = re.sub(r'48 Hwy', 'Hwy 48', Raw, flags=re.IGNORECASE)
+    # Replace Hwy
+    Clean_Address = re.sub(r'76 Hwy', 'Hwy 76', Clean_Address, flags=re.IGNORECASE)
+    # Replace Hwy
+    Clean_Address = re.sub(r'interstate 24', 'I24', Clean_Address, flags=re.IGNORECASE)
+    # Remove "apt", "ste", "unit", "lot" with any case
+    Clean_Address = re.sub(r'\b(?:APT|STE|UNIT|LOT)\b\s*\w+', '', Clean_Address, flags=re.IGNORECASE)
+    # Remove Characters after Addr type
+    pattern = r'(\b(?:{})\b).*'.format('|'.join(address_types))
+    Clean_Address = re.sub(pattern, r'\g<1>', Clean_Address, flags=re.IGNORECASE)
+    return Clean_Address
+
+raw_addresses = r'C:\Python\FebruaryIncidents.xls'
+###raw_addresses = [
+#    "123 Main St APT 4B",
+#    "254 76 Hwy ABC",
+#    "No Number Address",
+#    "48 Hwy XYZ"
+#]
+cleaned_addresses = []
+
+for Raw in raw_addresses:
+    cleaned_address = Clean_Addr(Raw)
+    cleaned_addresses.append(cleaned_address)
+
+#print(cleaned_addresses)
+
+def remove_records_without_numbers(records):
+    cleaned_records = []
+    for record in records:
+        if re.search(r'\d', record):
+            cleaned_records.append(record)
+    return cleaned_records
+
+# Example usage
+records = cleaned_addresses
+
+#cleaned_records = remove_records_without_numbers(records)
+#print(cleaned_records)
+
+# Input Excel file path
+
+
+# Read the input data
+data = pd.read_excel(r'C:\Python\FebruaryIncidents.xls')
+
+# Apply the Clean_Addr function on the data
+data['cleaned_address'] = data['Address'].apply(Clean_Addr)
+
+# Apply the remove_records_without_numbers function on the data
+data = remove_records_without_numbers(data)
+
+# Export the DataFrame to CSV
+output_file= r'C:/Python/output2.csv'
+data.to_csv(output_file, index=False)
